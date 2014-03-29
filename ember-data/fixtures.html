@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title>Fixtures</title>
+</head>
+<body>
+  <script src='vendor/jquery.js'></script>
+  <script src='vendor/handlebars.js'></script>
+  <script src='vendor/ember.js'></script>
+  <script src='vendor/ember-data.js'></script>
+
+<!-- ¤template -->
+<script type='text/x-handlebars' data-template-name='application'>
+  <div>{{#link-to 'index'}}首页{{/link-to}}</div>
+  {{outlet}}
+</script>
+
+<script type='text/x-handlebars' data-template-name='users/index'>
+  {{#each}}
+  <div>{{#link-to 'users.show' this}}{{name}}{{/link-to}}</div>
+  {{/each}}
+</script>
+
+<script type='text/x-handlebars' data-template-name='users/show'>
+  <div>Name: {{name}}</div>
+  <h3>Account</h3>
+  <div>Account Name: {{account.name}}</div>
+  <div>Account User: {{account.user.name}}</div>
+  <h3>Posts</h3>
+  <div> Posts Count: {{posts.length}}</div>
+</script>
+
+  <script type='text/javascript'>
+window.App = Ember.Application.create()
+App.Store = DS.Store.extend({
+  adapter: DS.FixtureAdapter
+})
+
+// ¤model
+App.User = DS.Model.extend({
+  name: DS.attr('string'),
+  // relations
+  account: DS.belongsTo('account'),
+  posts: DS.hasMany('post')
+})
+
+App.Account = DS.Model.extend({
+  name: DS.attr('string'),
+  user: DS.belongsTo('user')
+})
+
+App.Post = DS.Model.extend({
+  name: DS.attr('string'),
+  user: DS.belongsTo('user')
+})
+
+App.User.FIXTURES = [
+  { id: 1, name: 'Google', account: 1, posts: [1, 2] },
+  { id: 2, name: 'Amazon', account: 2, posts: [3] }
+]
+
+App.Account.FIXTURES = [
+  { id: 1, name: 'Account 1', user: 1 },
+  { id: 2, name: 'Account 2', user: 2 }
+]
+
+App.Post.FIXTURES = [
+  { id: 1, name: 'Post 1', user: 1 },
+  { id: 2, name: 'Post 2', user: 1 },
+  { id: 3, name: 'Post 3', user: 2 }
+]
+
+// ¤route
+App.Router.map(function() {
+  this.resource('users', function() {
+    this.route('show', {path: '/:user_id'})
+  })
+})
+
+App.IndexRoute = Ember.Route.extend({
+  // 首页重新定向到 /#users
+  beforeModel: function() {
+    this.transitionTo('users.index')
+  }
+})
+
+App.UsersIndexRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('user')
+  }
+})
+
+/* 默认的
+App.UsersShowRoute = Ember.Route.extend({
+  model: function(params) {
+    return this.store.find('user', params.user_id)
+  }
+})
+*/
+
+/* 提前加载数据 + 好用的工具
+ 在控制台下面:
+
+ user.get('name')                -> 'Google'
+ user.set('name', 'foo')
+ user.get('name')                -> 'foo'
+
+ user.get('account.name')        -> 'Account 1'
+ user.set('account', account2)
+ user.get('account.name')         -> 'Account 2'
+ */
+Ember.onLoad('Ember.Application', function(Application) {
+  Application.initializer({
+    name: 'eager-load-fixtures',
+    initialize: function(container, application) {
+      window.s = store = container.lookup('store:main')
+      window.find = function(type, id, name) {
+        store.find(type, id).then(function(record) {
+          window[name] = record
+        })
+      }
+
+      ;['post', 'account'].forEach(function(v) { store.find(v) })
+      find('user', 1, 'user')
+      find('user', 2, 'user2')
+      find('account', 1, 'account')
+      find('account', 2, 'account2')
+      find('post', 1, 'post')
+      find('post', 2, 'post2')
+    }
+  })
+})
+
+//
+
+
+  </script>
+</body>
+</html>

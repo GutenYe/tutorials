@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title>Data</title>
+</head>
+<body>
+  <script src='vendor/jquery.js'></script>
+  <script src='vendor/handlebars.js'></script>
+  <script src='vendor/ember.js'></script>
+  <script src='vendor/ember-data.js'></script>
+
+<!-- ¤template -->
+<script type='text/x-handlebars' data-template-name='application'>
+  <div>{{#link-to 'index'}}首页{{/link-to}}</div>
+  {{outlet}}
+</script>
+
+<script type='text/x-handlebars' data-template-name='users/index'>
+  {{#each}}
+  <div>{{#link-to 'users.show' this}}{{name}}{{/link-to}}</div>
+  {{/each}}
+</script>
+
+<script type='text/x-handlebars' data-template-name='users/show'>
+  <div>Name: {{name}}</div>
+</script>
+
+  <script type='text/javascript'>
+window.App = Ember.Application.create()
+App.Store = DS.Store.extend({
+  adapter: DS.ActiveModelAdapter
+})
+
+// ¤model
+App.User = DS.Model.extend({
+  name: DS.attr('string'),
+})
+
+// ¤route
+App.Router.map(function() {
+  this.resource('users', function() {
+    this.route('show', {path: '/:user_id'})
+  })
+})
+
+App.IndexRoute = Ember.Route.extend({
+  // 首页重新定向到 /#users
+  beforeModel: function() {
+    this.transitionTo('users.index')
+  }
+})
+
+App.UsersIndexRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('user')
+  }
+})
+
+/* 默认的
+App.UsersShowRoute = Ember.Route.extend({
+  model: function(params) {
+    return this.store.find('user', params.user_id)
+  }
+})
+*/
+  </script>
+</body>
+</html>
