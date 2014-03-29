@@ -114,7 +114,7 @@ Ember.onLoad('Ember.Application', function(Application) {
   Application.initializer({
     name: 'eager-load-fixtures',
     initialize: function(container, application) {
-      window.s = store = container.lookup('store:main')
+      window.store = container.lookup('store:main')
       window.find = function(type, id, name) {
         store.find(type, id).then(function(record) {
           window[name] = record
@@ -128,13 +128,10 @@ Ember.onLoad('Ember.Application', function(Application) {
       find('account', 2, 'account2')
       find('post', 1, 'post')
       find('post', 2, 'post2')
+      find('post', 3, 'post3')
     }
   })
 })
-
-//
-
-
   </script>
 </body>
 </html>
